@@ -4,7 +4,7 @@ Enterprise Text-to-SQL & Visual Dashboard Studio with AST Security Guardrails, I
 
 ---
 
-## 🌟 Architecture & Core Features
+## Architecture & Core Features
 
 * **Supabase Authentication**: Email/Password Registration with Email Verification, Supabase OAuth2 (GitHub & Google), and Forgot Password recovery.
 * **2-Layer User Data Isolation**:
@@ -16,7 +16,7 @@ Enterprise Text-to-SQL & Visual Dashboard Studio with AST Security Guardrails, I
 
 ---
 
-## 🚀 Quick Setup Instructions
+## Quick Setup Instructions
 
 ### 1. Environment Setup
 Copy `.env.example` to `.env.local` for local development:
@@ -47,6 +47,6 @@ npm run build
 
 ---
 
-## 🔒 Governance & Contribution Rules
+## Governance & Contribution Rules
 
 For guidelines on setting up your local Supabase sandbox, branch protection rules, single-migration atomic PRs, and Kanban board governance, see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
