@@ -1,45 +1,44 @@
 # Contributing Guidelines
 
-## Governance & Permissions
+## Backend & Frontend Architecture Overview
 
-1. **Kanban Board**: The GitHub Project Kanban board is read-only for contributors. Only repository maintainers move items across columns.
-2. **Pull Requests & Approvals**: All contributions require a Pull Request (PR) and maintainer review before merging into `main`. Direct pushes to `main` are blocked.
+This project uses a modern serverless architecture:
+* **Frontend**: React + Vite hosted on Vercel CDN.
+* **Backend API & AST Engine**: Vercel Serverless Functions (`/api/*`) or Supabase Edge Functions (`/supabase/functions/*`).
+* **Database & Auth**: Supabase PostgreSQL with Row-Level Security (RLS) policies.
 
-## Supabase Development Environment Setup
+---
 
-Contributors can use either of the following two Supabase setups:
+## What a Contributor Must Do for Backend Features
 
-### Option A: Personal Supabase Sandbox (Recommended for Open Source)
-1. Create a free account at [Supabase.com](https://supabase.com) and create a personal development project.
-2. Add your sandbox keys to `.env.local` (ignored by git):
+### 1. Local Backend Development
+Contributors build and test backend API routes and SQL queries locally using either:
+* **Option A**: A free personal Supabase sandbox project connected via keys in `.env.local`.
+* **Option B**: Local Supabase CLI stack (`npx supabase start`).
+
+### 2. Adding Database Migrations
+If a backend feature requires new database tables, columns, or RLS policies:
+1. Generate a new timestamped migration file:
    ```bash
-   VITE_SUPABASE_URL=https://your-sandbox.supabase.co
-   VITE_SUPABASE_ANON_KEY=your-sandbox-anon-key
+   npx supabase migration new <feature_name>
    ```
-3. Apply repository schema migrations to your sandbox:
-   ```bash
-   npx supabase link --project-ref <your-sandbox-ref>
-   npx supabase db push
-   ```
+2. Write the SQL DDL statements inside the generated file in `supabase/migrations/`.
+3. Never edit existing committed migration files.
 
-### Option B: Team Staging Access (For Core Contributors)
-If invited to the organization's shared **Staging** project by the maintainer:
-1. Accept the email invite to join as a **Developer**.
-2. Link your CLI to the Staging project reference ID provided by the maintainer.
+### 3. Environment Variable Documentation
+If a backend feature introduces a new environment key:
+1. Add the variable name to `.env.example` (prefixed with `VITE_` for frontend or standard name for serverless functions).
+2. Never commit real credentials or `.env.local`.
 
-## Atomic PR Requirement
+### 4. Pull Request & Deployment Flow
 
-Each Pull Request must represent a single, atomic feature or fix:
-* **Single Migration**: If schema changes are required, include exactly **one** new timestamped migration file generated via `npx supabase migration new <name>`.
-* **Environment Keys**: If new environment variables are needed, update `.env.example` with the new key name (prefixed with `VITE_`). Never commit real secrets or `.env.local`.
-* **Atomic Scope**: Do not combine multiple unrelated user stories or features into one PR.
+```
+[Developer Local Work] ──► [Submit GitHub PR] ──► [Vercel PR Preview URL] ──► [Your Approval] ──► [Production Deploy]
+```
 
-## Contribution Workflow
-
-1. **Select an Issue**: Choose an issue from the backlog and comment to request assignment.
-2. **Create Branch**: Create a branch from `main` (`feature/description` or `fix/description`).
-3. **Build & Test**: Ensure all tests and build validations pass:
-   ```bash
-   npm run build
-   ```
-4. **Submit PR**: Open a PR targeting `main` referencing the issue number (e.g., `Closes #1`).
+1. **Submit PR**: Contributor pushes their branch and opens a PR on GitHub.
+2. **Vercel Preview Deployment**: Vercel automatically builds a staging preview URL for the PR so you can test the backend API and frontend live.
+3. **Maintainer Approval**: GitHub blocks merging until you review and approve the PR.
+4. **Automatic Production Deployment**:
+   * Merging to `main` triggers Vercel to deploy updated backend API routes to production.
+   * Supabase CLI applies the new database migration file to your production Supabase database.
