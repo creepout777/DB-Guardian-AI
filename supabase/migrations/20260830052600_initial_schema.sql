@@ -1,5 +1,5 @@
 -- 20260830052600_initial_schema.sql
--- DB-Guardian AI: Initial Consolidated Database Schema & Row-Level Security Policies
+-- DB-Guardian AI: Initial Consolidated Database Schema & Row-Level Security Policies (Trigger Deployment)
 
 -- 1. Create Policy Audit Logs Table
 CREATE TABLE IF NOT EXISTS public.policy_audit_logs (
