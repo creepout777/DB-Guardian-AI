@@ -7,17 +7,17 @@ import Users from './pages/Users';
 import Settings from './pages/Settings';
 import Profile from './pages/Profile';
 import Auth from './pages/Auth';
-import { 
-  Sparkles, 
-  LayoutGrid, 
-  Database, 
-  Shield, 
-  Users as UsersIcon, 
-  Settings as SettingsIcon, 
-  User, 
-  Sun, 
-  Moon, 
-  Menu, 
+import {
+  Sparkles,
+  LayoutGrid,
+  Database,
+  Shield,
+  Users as UsersIcon,
+  Settings as SettingsIcon,
+  User,
+  Sun,
+  Moon,
+  Menu,
   X,
   Terminal,
   LogOut
@@ -88,12 +88,11 @@ export default function App() {
 
   return (
     <div className={`min-h-screen flex flex-col md:flex-row font-sans ${theme === 'light' ? 'bg-slate-50 text-slate-900' : 'bg-zinc-950 text-zinc-100'}`}>
-      
+
       {/* Navigation Sidebar */}
-      <aside 
-        className={`${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-        } fixed md:static inset-y-0 left-0 z-40 w-64 ${theme === 'light' ? 'bg-white border-slate-200' : 'bg-zinc-900 border-zinc-800'} border-r flex flex-col justify-between transition-all duration-200`}
+      <aside
+        className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+          } fixed md:static inset-y-0 left-0 z-40 w-64 ${theme === 'light' ? 'bg-white border-slate-200' : 'bg-zinc-900 border-zinc-800'} border-r flex flex-col justify-between transition-all duration-200`}
       >
         <div className="flex flex-col flex-1 overflow-y-auto">
           {/* Logo Header */}
@@ -105,7 +104,7 @@ export default function App() {
               <h1 className="font-bold text-sm tracking-tight uppercase">DB-Guardian</h1>
               <p className="text-[10px] text-indigo-500 font-semibold tracking-wider uppercase">Enterprise Query Guard</p>
             </div>
-            <button 
+            <button
               className="md:hidden ml-auto text-slate-400 hover:text-slate-600"
               onClick={() => setSidebarOpen(false)}
             >
@@ -127,15 +126,14 @@ export default function App() {
                       setSidebarOpen(false);
                     }
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                    isActive
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive
                       ? theme === 'light'
                         ? 'bg-indigo-50 text-indigo-700 font-semibold'
                         : 'bg-zinc-800 text-white font-semibold'
                       : theme === 'light'
                         ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                         : 'text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200'
-                  }`}
+                    }`}
                 >
                   <Icon className={`h-4 w-4 ${isActive ? (theme === 'light' ? 'text-indigo-600' : 'text-indigo-400') : 'text-slate-400'}`} />
                   {tab.name}
@@ -150,11 +148,10 @@ export default function App() {
           <div className="flex items-center justify-between">
             <div>
               <div className={`text-xs font-bold ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>{currentUser.name}</div>
-              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border uppercase font-mono ${
-                currentUser.role === 'admin'
+              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border uppercase font-mono ${currentUser.role === 'admin'
                   ? 'border-indigo-500/30 bg-indigo-500/10 text-indigo-600'
                   : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600'
-              }`}>
+                }`}>
                 {currentUser.role === 'admin' ? 'GLOBAL ADMIN' : 'RESTRICTED USER'}
               </span>
             </div>
@@ -171,11 +168,11 @@ export default function App() {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        
+
         {/* Top Navbar */}
         <header className={`h-16 border-b ${theme === 'light' ? 'bg-white border-slate-200' : 'bg-zinc-900 border-zinc-800'} sticky top-0 z-30 flex items-center justify-between px-6 transition-colors`}>
           <div className="flex items-center gap-4">
-            <button 
+            <button
               className="md:hidden text-slate-400 hover:text-slate-600"
               onClick={() => setSidebarOpen(true)}
             >
@@ -187,15 +184,14 @@ export default function App() {
           <div className="flex items-center gap-3">
             {/* Quick Switch Role (for live demoing) */}
             <button
-              onClick={() => setCurrentUser(prev => prev.role === 'admin' 
+              onClick={() => setCurrentUser(prev => prev.role === 'admin'
                 ? { name: 'Sarah Jenkins', email: 'sarah.j@company.com', role: 'user' }
                 : { name: 'Administrator', email: 'admin@guardian.io', role: 'admin' }
               )}
-              className={`px-2.5 py-1 rounded text-[11px] font-bold border transition-colors ${
-                currentUser.role === 'admin'
+              className={`px-2.5 py-1 rounded text-[11px] font-bold border transition-colors ${currentUser.role === 'admin'
                   ? 'bg-slate-100 border-slate-300 text-slate-800 hover:bg-slate-200 dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-200'
                   : 'bg-indigo-600 text-white border-indigo-600'
-              }`}
+                }`}
             >
               Switch Role ({currentUser.role === 'admin' ? 'View as User' : 'View as Admin'})
             </button>
@@ -204,11 +200,10 @@ export default function App() {
             <button
               onClick={toggleTheme}
               title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
-              className={`p-2 rounded-lg border transition-all flex items-center gap-1.5 text-xs font-medium ${
-                theme === 'light'
+              className={`p-2 rounded-lg border transition-all flex items-center gap-1.5 text-xs font-medium ${theme === 'light'
                   ? 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
                   : 'bg-zinc-800 border-zinc-700 text-zinc-300 hover:bg-zinc-700'
-              }`}
+                }`}
             >
               {theme === 'dark' ? (
                 <Sun className="h-4 w-4 text-amber-400" />
