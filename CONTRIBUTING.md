@@ -1,66 +1,56 @@
 # Contributing Guidelines
 
-## Governance and Permissions
+## Backend and Supabase Feature Architecture
 
-1. **Kanban Board**: The GitHub Project Kanban board is read-only for external contributors. Only repository maintainers move items across columns.
-2. **Mandatory PR Approval**: Direct pushes to `main` are blocked by branch protection. All code and database schema changes require a Pull Request (PR) and approval from the maintainer (`@creepout777`).
+This repository uses version-controlled configuration and migration files:
+* **Database Schema and Policies**: Managed in `supabase/migrations/*.sql`.
+* **Auth and Project Settings**: Managed in `supabase/config.toml` (site URL, JWT expiry, email verification toggles).
+* **Frontend Supabase Client**: Configured in `src/lib/supabase.js` using `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
+* **Automated CI/CD**: Managed via GitHub Actions (`.github/workflows/supabase-deploy.yml`).
 
 ---
 
-## Supabase Development Environment Setup
+## Contributor Scenario: Adding or Updating Auth, Email, or Database Features
 
-Contributors can use either of the following two Supabase setups:
+Suppose you are a contributor building or modifying a feature (such as Email Verification, Supabase Auth flows, or Storage rules). Follow these exact steps:
 
-### Option A: Personal Supabase Sandbox (Recommended for Open Source)
-1. Create a free account at [Supabase.com](https://supabase.com) and create a personal development project.
-2. Add your sandbox keys to `.env.local` (ignored by git):
+### Step 1: Set Up Local Development Sandbox
+1. Fork the repository and clone your fork locally.
+2. Create a free personal development project on [Supabase.com](https://supabase.com).
+3. Create `.env.local` in your root folder and add your personal sandbox keys:
    ```bash
    VITE_SUPABASE_URL=https://your-sandbox.supabase.co
    VITE_SUPABASE_ANON_KEY=your-sandbox-anon-key
    ```
-3. Apply repository schema migrations to your personal sandbox:
+4. Link your CLI and apply the repository schema to your personal sandbox:
    ```bash
    npx supabase link --project-ref <your-sandbox-ref>
    npx supabase db push
    ```
 
-### Option B: Team Staging Access (For Core Contributors)
-If invited to the organization's shared **Staging** project by the maintainer:
-1. Accept the email invite to join as a **Developer**.
-2. Link your CLI to the Staging project reference ID provided by the maintainer.
-
----
-
-## Atomic Pull Request (PR) Requirements
-
-Each Pull Request must represent a single, atomic feature or fix:
-
-* **Single Migration File**: If schema changes are required, include exactly **one** new timestamped migration file generated via:
+### Step 2: Implement the Feature
+* **For UI/Auth Code**: Add your React code or Supabase client calls (`supabase.auth.signUp()`, `supabase.auth.signInWithOAuth()`, `supabase.auth.resetPasswordForEmail()`) in `src/pages/Auth.jsx` or `src/lib/supabase.js`.
+* **For Auth/Project Settings**: Update `supabase/config.toml` (such as enabling email confirmations).
+* **For Database Tables or Policies**: Generate a new timestamped migration file:
   ```bash
   npx supabase migration new <feature_name>
   ```
-* **Never Edit Past Migrations**: Do not modify existing, committed migration files. Always create a new timestamped file for schema changes.
-* **Environment Keys**: If new environment variables are needed, document the key name in `.env.example` (prefixed with `VITE_`). Never commit real secrets or `.env.local`.
-* **Atomic Scope**: Do not combine multiple unrelated user stories or features into one PR.
+  Write your DDL and RLS policy SQL inside the generated `.sql` file in `supabase/migrations/`.
 
----
-
-## Step-by-Step Contribution Workflow
-
-```
-[1. Select Issue] ──► [2. Create Branch] ──► [3. Code & Test] ──► [4. Open PR] ──► [5. Maintainer Approval & Auto-Deploy]
+### Step 3: Local Build Verification
+Verify that your changes compile cleanly without errors:
+```bash
+npm run build
 ```
 
-1. **Select an Issue**: Choose an issue from the backlog and comment to request assignment.
-2. **Create Branch**: Create a descriptive branch from `main`:
-   * Features: `feature/description` (e.g. `feature/user-profiles`)
-   * Fixes: `fix/description` (e.g. `fix/erd-canvas-zoom`)
-3. **Build and Test**: Verify all tests and production builds pass locally:
-   ```bash
-   npm run build
-   ```
-4. **Submit PR**: Open a PR targeting `main` referencing the issue number (e.g., `Closes #1`).
-5. **Vercel Preview**: Vercel automatically generates a temporary Preview URL for testing.
-6. **Maintainer Review & Merge**: Once approved by the maintainer, merging to `main` automatically triggers:
+### Step 4: Open a Pull Request (PR)
+1. Commit your changes and push your feature branch to your fork.
+2. Open a Pull Request targeting `main` on the primary repository (`creepout777/DB-Guardian-AI`).
+3. Include a clear description of the feature added.
+
+### Step 5: Maintainer Approval and Production Deployment
+1. **Vercel Preview**: Vercel automatically builds a temporary staging URL for your PR so the maintainer can test your UI live.
+2. **Third-Party Secrets**: If your feature requires private third-party credentials (such as Google OAuth Client Secrets or custom SendGrid SMTP passwords), list the placeholder key names in your PR description. The maintainer will paste secret values into the main Supabase Dashboard.
+3. **Merge**: Once the maintainer approves and merges your PR:
    * **Vercel**: Deploys frontend code to production.
-   * **GitHub Actions**: Executes `supabase db push` to apply the SQL migration file to the production database.
+   * **GitHub Actions**: Runs `supabase db push` to apply migration files and configurations to the production database automatically.
