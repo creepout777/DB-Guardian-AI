@@ -1,5 +1,7 @@
 # Contributing Guidelines
 
+**As a contributor, you only ever set up local environment variables on your own machine. Vercel and GitHub Secrets are owned by the maintainer and you will never need to touch them.**
+
 ---
 
 ## How the Environment Variables Work

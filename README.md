@@ -16,41 +16,38 @@ Enterprise Text-to-SQL and Visual Dashboard Studio with AST Security Guardrails,
 
 ## Environment Variables Reference
 
-The application uses environment variables in three distinct locations. Each location serves a different purpose and holds different keys.
+The application uses environment variables in three distinct locations.
 
-### Where Each Variable Lives
+**Contributors only ever touch `.env.local` on their local machine. Vercel and GitHub Secrets are managed exclusively by the maintainer (`@creepout777`) and are never accessible to contributors.**
 
-| Variable | Local `.env.local` | Vercel Dashboard | GitHub Secrets |
+| Variable | Contributor `.env.local` | Maintainer: Vercel | Maintainer: GitHub Secrets |
 | :--- | :---: | :---: | :---: |
-| `VITE_SUPABASE_URL` | Yes | Yes | No |
-| `VITE_SUPABASE_ANON_KEY` | Yes | Yes | No |
+| `VITE_SUPABASE_URL` | Yes (personal sandbox) | Yes (production) | No |
+| `VITE_SUPABASE_ANON_KEY` | Yes (personal sandbox) | Yes (production) | No |
 | `SUPABASE_ACCESS_TOKEN` | No | No | Yes |
 | `SUPABASE_PROJECT_ID` | No | No | Yes |
 | `SUPABASE_DB_PASSWORD` | No | No | Yes (optional) |
 
-### What Each Variable Does
+### Variable Descriptions
 
-**Local Development** (`.env.local` — never committed to git):
-- `VITE_SUPABASE_URL`: The HTTPS URL of your personal Supabase sandbox project. Used by the React frontend to connect to Supabase Auth.
-- `VITE_SUPABASE_ANON_KEY`: The public anonymous API key of your sandbox project. Safe to use in browser code.
+**`.env.local`** (each developer's machine — git-ignored, never committed):
+- `VITE_SUPABASE_URL`: HTTPS URL of your personal Supabase sandbox project.
+- `VITE_SUPABASE_ANON_KEY`: Public anonymous API key of your sandbox project.
 
-**Vercel Dashboard** (Settings → Environment Variables):
-- `VITE_SUPABASE_URL`: The URL of your production Supabase project. Required for the live website to connect to Supabase Auth.
-- `VITE_SUPABASE_ANON_KEY`: The public anonymous API key of your production project.
+**Vercel Dashboard** (maintainer only):
+- Same `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` but pointing to the production Supabase project.
 
-> Note: Vercel may also auto-inject `SUPABASE_URL` and `SUPABASE_ANON_KEY` if you use the Vercel Supabase integration. The application reads both formats automatically.
-
-**GitHub Repository Secrets** (Settings → Secrets and variables → Actions):
-- `SUPABASE_ACCESS_TOKEN`: Your personal Supabase CLI token (`sbp_...`). Allows GitHub Actions to authenticate with your Supabase account and push database migrations.
-- `SUPABASE_PROJECT_ID`: Your project reference ID (found in Supabase Dashboard → Project Settings → General). Tells GitHub Actions which project to deploy migrations to.
-- `SUPABASE_DB_PASSWORD`: Optional. Your database password, required when the project uses a custom password.
+**GitHub Repository Secrets** (maintainer only):
+- `SUPABASE_ACCESS_TOKEN`: CLI token used by GitHub Actions to authenticate with Supabase.
+- `SUPABASE_PROJECT_ID`: Project reference ID that GitHub Actions deploys migrations to.
+- `SUPABASE_DB_PASSWORD`: Optional database password.
 
 ### When a New Environment Variable Is Added
 
-1. The developer adds its placeholder name and description to `.env.example` in their Pull Request.
-2. The maintainer reviews and merges the PR.
-3. The maintainer then manually adds the real value to Vercel Environment Variables (if it is a frontend `VITE_` key) or GitHub Secrets (if it is a backend migration key).
-4. Contributors get the new key name from `.env.example` and paste their own value into their local `.env.local`.
+1. The developer adds a placeholder entry to `.env.example` with a comment explaining the variable.
+2. The PR description lists the variable name and whether it goes to Vercel or GitHub Secrets.
+3. After merge, the maintainer adds the real production value to Vercel or GitHub Secrets.
+4. Contributors copy the new key name from `.env.example` into their local `.env.local` and fill in their own sandbox value.
 
 ---
 
@@ -68,7 +65,33 @@ Vercel and GitHub Actions run independently and in parallel. They do not share e
 
 ---
 
-## Local Setup
+## Contributor Quick Start
+
+As a contributor, this is everything you need to set up locally. No Vercel access. No GitHub Secrets. Just these steps:
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/creepout777/DB-Guardian-AI.git
+cd DB-Guardian-AI
+npm install
+
+# 2. Create your local environment file
+cp .env.example .env.local
+# Then open .env.local and add your personal Supabase sandbox keys
+
+# 3. Apply the repository database schema to your sandbox
+npx supabase link --project-ref <your-sandbox-ref>
+npx supabase db push
+
+# 4. Run the app
+npm run dev
+```
+
+That is it. Your `.env.local` contains your personal sandbox values and is never committed.
+
+---
+
+## Local Setup (Detailed)
 
 ### 1. Clone and Install
 
