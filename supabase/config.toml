@@ -1,5 +1,5 @@
 # Supabase Project Configuration File
-# Version-controlled auth settings, email verification, and OAuth provider definitions
+# Version-controlled auth settings and email verification definitions
 
 [api]
 enabled = true
@@ -19,13 +19,4 @@ jwt_expiry = 3600
 [auth.email]
 enable_signup = true
 double_confirm_changes = true
-enable_confirmations = true # Requires email verification before first login!
-
-# OAuth2 Providers Setup
-[auth.external.github]
-enabled = true
-client_id = "env(VITE_GITHUB_CLIENT_ID)"
-
-[auth.external.google]
-enabled = true
-client_id = "env(VITE_GOOGLE_CLIENT_ID)"
+enable_confirmations = true
