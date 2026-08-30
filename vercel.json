@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "if [ -n \"$SUPABASE_DB_URL\" ]; then npm run db:push; fi && npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
   "rewrites": [

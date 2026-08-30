@@ -6,11 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "db:push": "npx supabase db push --db-url $SUPABASE_DB_URL",
     "lint": "oxlint",
     "preview": "vite preview"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.109.0",
+    "@supabase/supabase-js": "^2.49.1",
     "lucide-react": "^1.37.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
@@ -23,6 +24,7 @@
     "autoprefixer": "^10.5.4",
     "oxlint": "^1.79.0",
     "postcss": "^8.5.26",
+    "supabase": "^2.15.8",
     "tailwindcss": "^4.3.3",
     "vite": "^8.2.2"
   }
