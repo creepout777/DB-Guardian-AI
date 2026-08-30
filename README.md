@@ -1,18 +1,34 @@
 # DB-Guardian AI
 
-Enterprise Text-to-SQL & Visual Dashboard Studio with AST Security Guardrails, Interactive ERD Schema Canvas, and Supabase 2-Layer Data Isolation.
+Enterprise Text-to-SQL and Visual Dashboard Studio with AST Security Guardrails, Interactive ERD Schema Canvas, and Supabase 2-Layer Data Isolation.
 
 ---
 
-## Architecture & Core Features
+## Architecture and Core Features
 
-* **Supabase Authentication**: Email/Password Registration with Email Verification, Supabase OAuth2 (GitHub & Google), and Forgot Password recovery.
+* **Supabase Authentication**: Email/Password Registration with Email Verification, Supabase OAuth2 (GitHub and Google), and Password Reset recovery.
 * **2-Layer User Data Isolation**:
   * **Layer 1 (Database)**: Automatic Postgres Row-Level Security (RLS) policies (`auth.uid() = user_id`).
   * **Layer 2 (Backend API)**: JWT session token validation middleware.
 * **Visual Dashboard Studio**: Drag-and-drop widget reordering, 8 enterprise widget types, and Full-Screen Presentation view.
-* **Interactive ERD Schema Canvas**: Pan & Zoom controls, draggable table cards, and dynamic SVG foreign key relationship curves.
-* **2-Tier Account Role Model**: `Global Administrator` (Full setup & policy control) vs `Regular User` (Scoped to assigned dashboard & data).
+* **Interactive ERD Schema Canvas**: Pan and Zoom controls, draggable table cards, and dynamic SVG foreign key relationship curves.
+* **2-Tier Account Role Model**: `Global Administrator` (Full setup and policy control) vs `Regular User` (Scoped to assigned dashboard and data).
+
+---
+
+## Technical Stack and CI/CD Pipeline
+
+```
+[Git Push / PR Merge to main]
+          │
+          ├──► Vercel CDN ──────────────► Deploys React Frontend Website
+          │
+          └──► GitHub Actions Workflow ──► Runs `supabase db push` to Deploy Database Migrations
+```
+
+* **Frontend**: React + Vite deployed automatically via Vercel.
+* **Database & Auth**: Supabase PostgreSQL with Row-Level Security (RLS).
+* **Automated Database CI/CD**: GitHub Actions deploys timestamped SQL migration files (`supabase/migrations/*.sql`) directly to Supabase upon PR merge.
 
 ---
 
@@ -37,7 +53,7 @@ npm install
 npm run dev
 ```
 
-Visit **[http://localhost:5173/](http://localhost:5173/)** in your browser.
+Open `http://localhost:5173/` in your browser.
 
 ### 3. Production Build
 Verify production compilation:
@@ -47,6 +63,6 @@ npm run build
 
 ---
 
-## Governance & Contribution Rules
+## Governance and Contribution Rules
 
-For guidelines on setting up your local Supabase sandbox, branch protection rules, single-migration atomic PRs, and Kanban board governance, see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
+For step-by-step guidelines on local Supabase sandbox setups, single-migration atomic PRs, branch protection rules, and Kanban board workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
