@@ -1,5 +1,5 @@
 -- 20260830042800_github_action_test.sql
--- Automated Migration Test via GitHub Actions
+-- Automated Migration Test via GitHub Actions (Trigger Run 2)
 
 CREATE TABLE IF NOT EXISTS public.github_actions_test (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
