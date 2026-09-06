@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Dashboard from './pages/Dashboard';
 import Templates from './pages/Templates';
 import Connectors from './pages/Connectors';
@@ -7,6 +7,14 @@ import Users from './pages/Users';
 import Settings from './pages/Settings';
 import Profile from './pages/Profile';
 import Auth from './pages/Auth';
+import {
+  getCurrentSession,
+  subscribeToAuthChanges,
+  signOutUser,
+  formatGuardianUser,
+  isSupabaseConfigured,
+  updateUserProfile
+} from './lib/supabase';
 import {
   Sparkles,
   LayoutGrid,
@@ -20,7 +28,9 @@ import {
   Menu,
   X,
   Terminal,
-  LogOut
+  LogOut,
+  RefreshCw,
+  Zap
 } from 'lucide-react';
 
 export default function App() {
@@ -29,17 +39,82 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
 
-  // Authenticated user state
-  const [currentUser, setCurrentUser] = useState({
-    name: 'Administrator',
-    email: 'admin@guardian.io',
-    role: 'admin' // 'admin' | 'user'
-  });
+  // Authenticated user state initialized from Supabase / localStorage
+  const [currentUser, setCurrentUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  // Initialize Supabase Auth Session and subscribe to auth state changes
+  useEffect(() => {
+    let mounted = true;
+
+    async function initAuth() {
+      try {
+        const { session } = await getCurrentSession();
+        if (mounted && session?.user) {
+          setCurrentUser(formatGuardianUser(session.user));
+        }
+      } catch (err) {
+        console.error('Session initialization error:', err);
+      } finally {
+        if (mounted) {
+          setAuthLoading(false);
+        }
+      }
+    }
+
+    initAuth();
+
+    // Subscribe to auth events (SIGNED_IN, SIGNED_OUT, USER_UPDATED, TOKEN_REFRESHED)
+    const { data: authListener } = subscribeToAuthChanges((event, session) => {
+      if (!mounted) return;
+
+      if (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') {
+        if (session?.user) {
+          setCurrentUser(formatGuardianUser(session.user));
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setCurrentUser(null);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      if (authListener?.subscription) {
+        authListener.subscription.unsubscribe();
+      }
+    };
+  }, []);
 
   const toggleTheme = () => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
     setTheme(nextTheme);
     document.documentElement.classList.toggle('light', nextTheme === 'light');
+  };
+
+  const handleSignOut = async () => {
+    await signOutUser();
+    setCurrentUser(null);
+  };
+
+  const handleToggleRole = async () => {
+    if (!currentUser) return;
+    const newRole = currentUser.role === 'admin' ? 'user' : 'admin';
+    const updatedUser = { ...currentUser, role: newRole };
+    setCurrentUser(updatedUser);
+
+    if (currentUser.provider === 'demo') {
+      localStorage.setItem('GUARDIAN_DEMO_USER', JSON.stringify(updatedUser));
+    } else if (isSupabaseConfigured) {
+      try {
+        await updateUserProfile({ role: newRole });
+      } catch (err) {
+        console.warn('Could not sync role to Supabase metadata:', err);
+      }
+    }
+  };
+
+  const handleUserUpdate = (updates) => {
+    setCurrentUser(prev => ({ ...prev, ...updates }));
   };
 
   // Base navigation tabs list
@@ -76,12 +151,28 @@ export default function App() {
       case 'settings':
         return <Settings theme={theme} />;
       case 'profile':
-        return <Profile theme={theme} />;
+        return <Profile theme={theme} currentUser={currentUser} onUpdateUser={handleUserUpdate} />;
       default:
         return <Dashboard theme={theme} />;
     }
   };
 
+  // Loading Screen while authenticating
+  if (authLoading) {
+    return (
+      <div className={`min-h-screen flex flex-col items-center justify-center font-sans ${theme === 'light' ? 'bg-slate-50 text-slate-900' : 'bg-zinc-950 text-zinc-100'}`}>
+        <div className="h-12 w-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl mb-4 animate-bounce">
+          <Terminal className="h-6 w-6" />
+        </div>
+        <div className="flex items-center gap-2 text-sm font-semibold">
+          <RefreshCw className="h-4 w-4 animate-spin text-indigo-500" />
+          <span>Securing Supabase Connection...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Not authenticated -> Display Auth Page
   if (!currentUser) {
     return <Auth theme={theme} onLogin={(user) => setCurrentUser(user)} />;
   }
@@ -146,9 +237,10 @@ export default function App() {
         {/* User Role Card & Logout */}
         <div className={`p-4 border-t ${theme === 'light' ? 'border-slate-200 bg-slate-50' : 'border-zinc-800 bg-zinc-950/40'}`}>
           <div className="flex items-center justify-between">
-            <div>
-              <div className={`text-xs font-bold ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>{currentUser.name}</div>
-              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border uppercase font-mono ${currentUser.role === 'admin'
+            <div className="min-w-0 pr-2">
+              <div className={`text-xs font-bold truncate ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>{currentUser.name}</div>
+              <div className="text-[10px] text-slate-400 truncate mb-1">{currentUser.email}</div>
+              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase font-mono ${currentUser.role === 'admin'
                   ? 'border-indigo-500/30 bg-indigo-500/10 text-indigo-600'
                   : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600'
                 }`}>
@@ -156,9 +248,9 @@ export default function App() {
               </span>
             </div>
             <button
-              onClick={() => setCurrentUser(null)}
-              className="p-1.5 rounded text-slate-400 hover:text-rose-600 transition-colors"
-              title="Sign Out"
+              onClick={handleSignOut}
+              className="p-1.5 rounded text-slate-400 hover:text-rose-600 transition-colors shrink-0"
+              title="Sign Out from DB-Guardian"
             >
               <LogOut className="h-4 w-4" />
             </button>
@@ -178,22 +270,29 @@ export default function App() {
             >
               <Menu className="h-5 w-5" />
             </button>
+
+            {/* Supabase Connection Status Badge */}
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono border bg-slate-100 dark:bg-zinc-800/80 border-slate-200 dark:border-zinc-700/60">
+              <span className={`h-1.5 w-1.5 rounded-full ${isSupabaseConfigured ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></span>
+              <span className="text-slate-500 dark:text-zinc-400">
+                {isSupabaseConfigured ? 'Supabase Auth' : 'Sandbox Auth'}
+              </span>
+            </div>
           </div>
 
           {/* Theme Switcher & Profile menu */}
           <div className="flex items-center gap-3">
-            {/* Quick Switch Role (for live demoing) */}
+            {/* Quick Switch Role (for testing RBAC) */}
             <button
-              onClick={() => setCurrentUser(prev => prev.role === 'admin'
-                ? { name: 'Sarah Jenkins', email: 'sarah.j@company.com', role: 'user' }
-                : { name: 'Administrator', email: 'admin@guardian.io', role: 'admin' }
-              )}
-              className={`px-2.5 py-1 rounded text-[11px] font-bold border transition-colors ${currentUser.role === 'admin'
+              onClick={handleToggleRole}
+              className={`px-2.5 py-1 rounded text-[11px] font-bold border transition-colors flex items-center gap-1 ${currentUser.role === 'admin'
                   ? 'bg-slate-100 border-slate-300 text-slate-800 hover:bg-slate-200 dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-200'
-                  : 'bg-indigo-600 text-white border-indigo-600'
+                  : 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-500'
                 }`}
+              title="Toggle role between Global Admin and Restricted User"
             >
-              Switch Role ({currentUser.role === 'admin' ? 'View as User' : 'View as Admin'})
+              <Zap className="h-3 w-3" />
+              Role: {currentUser.role === 'admin' ? 'Admin' : 'User'}
             </button>
 
             {/* Theme Toggle Button */}
@@ -212,11 +311,19 @@ export default function App() {
               )}
             </button>
 
-            <div className="flex items-center gap-2 border-l pl-3 border-slate-200/60 dark:border-zinc-800">
-              <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold text-white shadow-sm">
-                {currentUser.name.substring(0, 2).toUpperCase()}
+            <button
+              onClick={() => setActiveTab('profile')}
+              className="flex items-center gap-2 border-l pl-3 border-slate-200/60 dark:border-zinc-800 hover:opacity-80 transition-opacity"
+              title="View Profile"
+            >
+              <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold text-white shadow-sm overflow-hidden">
+                {currentUser.avatarUrl ? (
+                  <img src={currentUser.avatarUrl} alt={currentUser.name} className="h-full w-full object-cover" />
+                ) : (
+                  (currentUser.name || 'U').substring(0, 2).toUpperCase()
+                )}
               </div>
-            </div>
+            </button>
           </div>
         </header>
 
